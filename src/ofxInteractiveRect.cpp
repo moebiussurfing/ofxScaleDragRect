@@ -14,6 +14,8 @@
 //--------------------------------------------------------------
 ofxInteractiveRect::ofxInteractiveRect(string nombre)
 {
+	bLockResize = false;
+
     bIsEditing = false;
     bMove = false;
     bLeft = false;
@@ -289,26 +291,29 @@ void ofxInteractiveRect::mouseMoved(ofMouseEventArgs & mouse)
         {
 			bMove = true;
 		
-            if (mouse.x < x+MARGEN && mouse.x > x)
-            {
-				bLeft = true;
-				bMove = false;
-			}
-            else if(mouse.x < x + width && mouse.x > x + width - MARGEN)
-            {
-				bRight = true;
-				bMove = false;
-			}
-			
-            if (mouse.y > y && mouse.y < y + MARGEN)
-            {
-				bUp = true;
-				bMove = false;
-			}
-            else if(mouse.y > y + height - MARGEN && mouse.y < y + height)
-            {
-				bDown = true;
-				bMove = false;
+			if (!bLockResize) 
+			{
+				if (mouse.x < x + MARGEN && mouse.x > x)
+				{
+					bLeft = true;
+					bMove = false;
+				}
+				else if (mouse.x < x + width && mouse.x > x + width - MARGEN)
+				{
+					bRight = true;
+					bMove = false;
+				}
+
+				if (mouse.y > y && mouse.y < y + MARGEN)
+				{
+					bUp = true;
+					bMove = false;
+				}
+				else if (mouse.y > y + height - MARGEN && mouse.y < y + height)
+				{
+					bDown = true;
+					bMove = false;
+				}
 			}
 		}
         else
@@ -325,7 +330,9 @@ void ofxInteractiveRect::mousePressed(ofMouseEventArgs & mouse)
     
 	mousePrev = mouse;
 	bPressed = true;
-    bIsOver = inside(mouse.x, mouse.y);
+
+	if (!bAllScreenMouse) bIsOver = inside(mouse.x, mouse.y);
+	else bIsOver = true;
     
     bLeft = false;
     bRight = false;
@@ -335,26 +342,30 @@ void ofxInteractiveRect::mousePressed(ofMouseEventArgs & mouse)
     if (bIsOver)
     {
         bMove = true;
-        if (mouse.x < x+MARGEN && mouse.x > x)
-        {
-            bLeft = true;
-            bMove = false;
-        }
-        else if(mouse.x < x + width && mouse.x > x + width - MARGEN)
-        {
-            bRight = true;
-            bMove = false;
-        }
-        if (mouse.y > y && mouse.y < y + MARGEN)
-        {
-            bUp = true;
-            bMove = false;
-        }
-        else if(mouse.y > y + height - MARGEN && mouse.y < y + height)
-        {
-            bDown = true;
-            bMove = false;
-        }
+
+		if (!bLockResize)
+		{
+			if (mouse.x < x + MARGEN && mouse.x > x)
+			{
+				bLeft = true;
+				bMove = false;
+			}
+			else if (mouse.x < x + width && mouse.x > x + width - MARGEN)
+			{
+				bRight = true;
+				bMove = false;
+			}
+			if (mouse.y > y && mouse.y < y + MARGEN)
+			{
+				bUp = true;
+				bMove = false;
+			}
+			else if (mouse.y > y + height - MARGEN && mouse.y < y + height)
+			{
+				bDown = true;
+				bMove = false;
+			}
+		}
     }
     else
     {

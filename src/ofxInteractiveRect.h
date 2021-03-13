@@ -19,9 +19,22 @@ class ofxInteractiveRect : public ofRectangle
 {
     
 public:
+	bool isMouseOver() {
+		bool b = inside(ofGetMouseX(), ofGetMouseY());
+
+		return b;
+	}
+
+	bool bAllScreenMouse = false;
+	void setAllScreenMouse(bool b) {
+		bAllScreenMouse = b;
+	}
+
     ofxInteractiveRect(string nombre);
     virtual ~ofxInteractiveRect();
         
+	void setLockResize(bool b) { bLockResize = b; };
+
     void enableEdit(bool enable = true);
     void disableEdit();
     void toggleEdit();
@@ -76,6 +89,6 @@ protected:
 	bool bPressed;
     glm::vec2 mousePrev;
    
-   
+	bool bLockResize = false;
     
 };

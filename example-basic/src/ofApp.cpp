@@ -3,7 +3,6 @@
 //--------------------------------------------------------------
 void ofApp::setup(){
 
-	
 	myRect.enableEdit();
 	myRect.setRect(200, 200, 200, 400);
 }
@@ -37,9 +36,9 @@ void ofApp::draw(){
 	
 	ss << "Press [key] for:\n";
 	
+	ss << "    [space]  : toggle editing\n";
 	ss << "    [s]      : save current settings\n";
 	ss << "    [l]      : load settings\n";
-	ss << "    [space]  : toggle editing\n";
 	ss << "    [1]      : enable rectangle editing\n";
 	ss << "    [2]      : disable rectangle editing\n";
 	
