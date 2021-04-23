@@ -5,15 +5,15 @@
 //  Copyright (c) 2012 micasa. All rights reserved.
 //
 //  Updated by Aaron Richards on 13/05/2014.
-//
+//	Updated by moebiusSurfing 2021
 
 #include "ofxInteractiveRect.h"
 
-
-
 //--------------------------------------------------------------
-ofxInteractiveRect::ofxInteractiveRect(string nombre)
+ofxInteractiveRect::ofxInteractiveRect(string name)
 {
+	bEditMode.addListener(this, &ofxInteractiveRect::Changed_EditMode);
+
 	bLockResize = false;
 
     bIsEditing = false;
@@ -23,19 +23,20 @@ ofxInteractiveRect::ofxInteractiveRect(string nombre)
     bUp = false;
     bDown = false;
 	bIsOver = false;
-    this->nombre = nombre;
+    this->name = name;
     this->path = "";
 }
+
 //--------------------------------------------------------------
 ofxInteractiveRect::~ofxInteractiveRect()
 {
+	bEditMode.removeListener(this, &ofxInteractiveRect::Changed_EditMode);
 }
 
 //--------------------------------------------------------------
 void ofxInteractiveRect::enableEdit(bool enable)
 {
-    
-	ofLogVerbose("ofxInteractiveRect::enableEdit") << "interactiveRect " << this->nombre <<" enableEdit " << (string)(enable?"true":"false");
+	ofLogVerbose(__FUNCTION__) << "interactiveRect " << this->name <<" enableEdit " << (string)(enable?"true":"false");
     
     if (enable != bIsEditing)
     {
@@ -49,9 +50,9 @@ void ofxInteractiveRect::enableEdit(bool enable)
           //  saveSettings();
         }
         bIsEditing = enable;
-        
+
+		bEditMode.setWithoutEventNotifications(bIsEditing);
     }
-    
 }
 
 //--------------------------------------------------------------
@@ -73,12 +74,11 @@ ofRectangle ofxInteractiveRect::getRect()
 }
 
 //--------------------------------------------------------------
-void ofxInteractiveRect::saveSettings(string nombre, string path, bool saveJson)
+void ofxInteractiveRect::saveSettings(string name, string path, bool saveJson)
 {
-    
-    if(nombre!="")
+    if(name!="")
     {
-        this->nombre = nombre;
+        this->name = name;
     }
     
     if (path!="")
@@ -86,7 +86,7 @@ void ofxInteractiveRect::saveSettings(string nombre, string path, bool saveJson)
         this->path = path;
     }
 
-	string filename = this->path + "settings" + this->nombre ;
+	string filename = this->path + prefixName + this->name ;
 	 
 	if(saveJson){
 		filename += ".json";
@@ -96,23 +96,19 @@ void ofxInteractiveRect::saveSettings(string nombre, string path, bool saveJson)
 		toXml().save(filename);
 	}
 	
-	
-    
-	ofLogVerbose("ofxInteractiveRect::saveSettings") << "saved settings: "<< filename;
-    
+	ofLogVerbose(__FUNCTION__) << "saved settings: "<< filename;
 }
 
 
 ofJson ofxInteractiveRect::toJson()
 {
 	ofJson j;//("interactiveRect");
-	
 
 	j["x"] = this->ofRectangle::x;
 	j["y"] = this->ofRectangle::y;
 	j["width"] =  this->ofRectangle::width;
 	j["height"] =  this->ofRectangle::height;
-	j["nombre"] =  this->nombre;
+	j["name"] =  this->name;
 	j["path"] =  this->path;
 	j["isEditing"] = this->bIsEditing;
 	return j;
@@ -120,19 +116,16 @@ ofJson ofxInteractiveRect::toJson()
 
 void ofxInteractiveRect::fromJson(const ofJson& j)
 {
-	
-
 	j["x"].get_to(this->ofRectangle::x);
 	j["y"].get_to(this->ofRectangle::y);
 	j["width"].get_to(this->ofRectangle::width);
 	j["height"].get_to(this->ofRectangle::height);
-	j["nombre"].get_to(this->nombre);
+	j["name"].get_to(this->name);
 	j["path"].get_to(this->path);
 	bool editing;
 	
 	j["isEditing"].get_to(editing);
 	enableEdit(editing);
-	
 }
 
 ofXml ofxInteractiveRect::toXml()
@@ -145,7 +138,7 @@ ofXml ofxInteractiveRect::toXml()
 	r.appendChild("y").set(this->ofRectangle::y);
 	r.appendChild("width").set(this->ofRectangle::width);
 	r.appendChild("height").set(this->ofRectangle::height);
-	r.appendChild("nombre").set(this->nombre);
+	r.appendChild("name").set(this->name);
 	r.appendChild("isEditing").set(this->bIsEditing);
 
 	return xml;
@@ -153,7 +146,6 @@ ofXml ofxInteractiveRect::toXml()
 
 bool ofxInteractiveRect::fromXml(const ofXml& xml)
 {
-	
 	auto r = xml.getChild("interactiveRect");
 	if(r)
 	{
@@ -162,26 +154,21 @@ bool ofxInteractiveRect::fromXml(const ofXml& xml)
 		this->ofRectangle::y = r.getChild("y").getFloatValue();
 		this->ofRectangle::width = r.getChild("width").getFloatValue();
 		this->ofRectangle::height = r.getChild("height").getFloatValue();
-		this->nombre = r.getChild("nombre").getValue();
+		this->name = r.getChild("name").getValue();
 		enableEdit(r.getChild("isEditing").getBoolValue());
 		
 		return true;
 	}
 	
-	
 	return false;
 }
 
-
-
-
-
 //--------------------------------------------------------------
-bool ofxInteractiveRect::loadSettings(string nombre, string path, bool loadJson)
+bool ofxInteractiveRect::loadSettings(string name, string path, bool loadJson)
 {
-    if(nombre!="")
+    if(name!="")
     {
-        this->nombre = nombre;
+        this->name = name;
     }
     
     if (path!="")
@@ -189,7 +176,7 @@ bool ofxInteractiveRect::loadSettings(string nombre, string path, bool loadJson)
         this->path = path;
     }
 
-	string filename = this->path + "settings" + this->nombre ;
+	string filename = this->path + prefixName + this->name ;
 	 
 	if(loadJson)
 	{
@@ -209,77 +196,70 @@ bool ofxInteractiveRect::loadSettings(string nombre, string path, bool loadJson)
 			}
 		}
 	}
-	ofLogVerbose("ofxInteractiveRect::loadSettings") << "unable to load : "<< filename;
+	ofLogVerbose(__FUNCTION__) << "unable to load : "<< filename;
 	
 	return false;
-        
 }
-    
 
 //--------------------------------------------------------------
 void ofxInteractiveRect::draw()
 {
-    
 	if (bIsEditing)
     {
-    
         ofPushStyle();
+
 		if (bIsOver)
         {
 			if (bPressed)
             {
-				ofSetColor(50, 200);				
+				ofSetColor(colorEditingPressed);
 			}
             else
             {
-				ofSetColor(50, 70);				
+				ofSetColor(colorEditingHover);//alpha not working?
 			}
 			ofNoFill();
 			ofDrawRectangle(*this);
-			
 		}
         
 		ofFill();
         if (bMove)
         {
-            ofSetColor(127, 127);
+            ofSetColor(colorEditingMoving);
             ofDrawRectangle(*this);
         }
         else
         {
-            ofSetColor(handleColor, 150);
-            
+            ofSetColor(colorBorder.r, colorBorder.g, colorBorder.b, colorBorder.a * 0.5);
+
             if (bUp)
             {
-                ofDrawRectangle(x, y, width, MARGEN);
+                ofDrawRectangle(x, y, width, BORDER_SIZE);
             }
             else if(bDown)
             {
-                ofDrawRectangle(x, y + height - MARGEN, width, MARGEN);
+                ofDrawRectangle(x, y + height - BORDER_SIZE, width, BORDER_SIZE);
             }
             
             if (bLeft)
             {
-                ofDrawRectangle(x, y, MARGEN, height);
+                ofDrawRectangle(x, y, BORDER_SIZE, height);
             }
             else if(bRight)
             {
-                ofDrawRectangle(x + width - MARGEN, y, MARGEN, height);
+                ofDrawRectangle(x + width - BORDER_SIZE, y, BORDER_SIZE, height);
             }
         }
+
         ofPopStyle();
-        
 	}
-    
 }
 
 //--------------------------------------------------------------
 void ofxInteractiveRect::mouseMoved(ofMouseEventArgs & mouse)
 {
-    
 	if (!bPressed)
     {
-		
 		bIsOver = inside(mouse.x, mouse.y);
 
 		bLeft = false;
@@ -293,23 +273,23 @@ void ofxInteractiveRect::mouseMoved(ofMouseEventArgs & mouse)
 		
 			if (!bLockResize) 
 			{
-				if (mouse.x < x + MARGEN && mouse.x > x)
+				if (mouse.x < x + BORDER_SIZE && mouse.x > x)
 				{
 					bLeft = true;
 					bMove = false;
 				}
-				else if (mouse.x < x + width && mouse.x > x + width - MARGEN)
+				else if (mouse.x < x + width && mouse.x > x + width - BORDER_SIZE)
 				{
 					bRight = true;
 					bMove = false;
 				}
 
-				if (mouse.y > y && mouse.y < y + MARGEN)
+				if (mouse.y > y && mouse.y < y + BORDER_SIZE)
 				{
 					bUp = true;
 					bMove = false;
 				}
-				else if (mouse.y > y + height - MARGEN && mouse.y < y + height)
+				else if (mouse.y > y + height - BORDER_SIZE && mouse.y < y + height)
 				{
 					bDown = true;
 					bMove = false;
@@ -320,14 +300,12 @@ void ofxInteractiveRect::mouseMoved(ofMouseEventArgs & mouse)
         {
 			bMove = false;
 		}
-
 	}
-    
 }
+    
 //--------------------------------------------------------------
 void ofxInteractiveRect::mousePressed(ofMouseEventArgs & mouse)
 {
-    
 	mousePrev = mouse;
 	bPressed = true;
 
@@ -345,22 +323,22 @@ void ofxInteractiveRect::mousePressed(ofMouseEventArgs & mouse)
 
 		if (!bLockResize)
 		{
-			if (mouse.x < x + MARGEN && mouse.x > x)
+			if (mouse.x < x + BORDER_SIZE && mouse.x > x)
 			{
 				bLeft = true;
 				bMove = false;
 			}
-			else if (mouse.x < x + width && mouse.x > x + width - MARGEN)
+			else if (mouse.x < x + width && mouse.x > x + width - BORDER_SIZE)
 			{
 				bRight = true;
 				bMove = false;
 			}
-			if (mouse.y > y && mouse.y < y + MARGEN)
+			if (mouse.y > y && mouse.y < y + BORDER_SIZE)
 			{
 				bUp = true;
 				bMove = false;
 			}
-			else if (mouse.y > y + height - MARGEN && mouse.y < y + height)
+			else if (mouse.y > y + height - BORDER_SIZE && mouse.y < y + height)
 			{
 				bDown = true;
 				bMove = false;
@@ -371,30 +349,33 @@ void ofxInteractiveRect::mousePressed(ofMouseEventArgs & mouse)
     {
         bMove = false;
     }
-
 }
+
 //--------------------------------------------------------------
 void ofxInteractiveRect::mouseDragged(ofMouseEventArgs & mouse)
 {
-    
-    if (bUp)
-    {
-        y += mouse.y - mousePrev.y;
-        height += mousePrev.y- mouse.y;
-    }
-    else if (bDown)
-    {
-        height += mouse.y - mousePrev.y;
-    }
-    if (bLeft)
-    {
-        x += mouse.x - mousePrev.x;
-        width += mousePrev.x - mouse.x;
-    }
-    else if (bRight)
-    {
-        width += mouse.x - mousePrev.x;
-    }
+	//if (!bLockResize) 
+	{
+		if (bUp)
+		{
+			y += mouse.y - mousePrev.y;
+			height += mousePrev.y - mouse.y;
+		}
+		else if (bDown)
+		{
+			height += mouse.y - mousePrev.y;
+		}
+		if (bLeft)
+		{
+			x += mouse.x - mousePrev.x;
+			width += mousePrev.x - mouse.x;
+		}
+		else if (bRight)
+		{
+			width += mouse.x - mousePrev.x;
+		}
+	}
+
     if (bMove)
     {
         x += mouse.x - mousePrev.x;
@@ -402,22 +383,32 @@ void ofxInteractiveRect::mouseDragged(ofMouseEventArgs & mouse)
     }
     
 	mousePrev = mouse;
-    
 }
+    
 //--------------------------------------------------------------
 void ofxInteractiveRect::mouseReleased(ofMouseEventArgs & mouse)
 {
-    
-    bMove = false;
-    bLeft = false;
-    bRight = false;
-    bUp = false;
-    bDown = false;
+	//if (!bLockResize) 
+	{
+		bLeft = false;
+		bRight = false;
+		bUp = false;
+		bDown = false;
+	}
+	bMove = false;
 	bPressed = false;
-    
+
+	//clamp inside the window
+	int _min = 20;
+	width = ofClamp(width, _min, ofGetWidth());
+	height = ofClamp(height, _min, ofGetHeight());
 }
 
-
+//--------------------------------------------------------------
+void ofxInteractiveRect::Changed_EditMode(bool & b) 
+{
+	enableEdit(b);
+}
 
 //--------------------------------------------------------------
 void ofxInteractiveRect::mouseScrolled(ofMouseEventArgs & mouse) {}
