@@ -9,6 +9,31 @@
 
 #include "ofxInteractiveRect.h"
 
+//------------------------------------------------------------------------------
+	//animator functions taken from 
+	//https://github.com/tcoppex/ofxFontSampler/blob/main/example/src/ofApp.cpp
+namespace {
+
+	/* Return a linear value in range [0,1] every delay (in seconds). */
+	float Tick(float delay) {
+		return fmodf(ofGetElapsedTimeMillis() / 1000.0f, delay) / delay;
+	}
+
+	/* Return a linear value in range [0,1] every delay (in seconds),
+	 with value equal 0 at boundaries, and 1 at delay / 2. */
+	float Bounce(float delay) {
+		return 0.5f*(1.0 + glm::sin(Tick(delay) * glm::two_pi<float>()));
+	}
+
+	/* Noise function used by the gradient scaling. */
+	float Noise(const ofPoint &vertex) {
+		return /*24.0f **/ ofNoise(0.005f*vertex + 0.5f*ofGetElapsedTimeMillis()*0.0002f);
+	}
+
+	static constexpr int32_t kCharsetSize = 26;
+
+}  // namespace
+
 //--------------------------------------------------------------
 ofxInteractiveRect::ofxInteractiveRect(string name)
 {
@@ -16,15 +41,15 @@ ofxInteractiveRect::ofxInteractiveRect(string name)
 
 	bLockResize = false;
 
-    bIsEditing = false;
-    bMove = false;
-    bLeft = false;
-    bRight = false;
-    bUp = false;
-    bDown = false;
+	bIsEditing = false;
+	bMove = false;
+	bLeft = false;
+	bRight = false;
+	bUp = false;
+	bDown = false;
 	bIsOver = false;
-    this->name = name;
-    this->path = "";
+	this->name = name;
+	this->path = "";
 }
 
 //--------------------------------------------------------------
@@ -36,69 +61,69 @@ ofxInteractiveRect::~ofxInteractiveRect()
 //--------------------------------------------------------------
 void ofxInteractiveRect::enableEdit(bool enable)
 {
-	ofLogVerbose(__FUNCTION__) << "interactiveRect " << this->name <<" enableEdit " << (string)(enable?"true":"false");
-    
-    if (enable != bIsEditing)
-    {
-        if (enable)
-        {
-            ofRegisterMouseEvents(this);
-        }
-        else
-        {
-            ofUnregisterMouseEvents(this);
-          //  saveSettings();
-        }
-        bIsEditing = enable;
+	ofLogVerbose(__FUNCTION__) << "interactiveRect " << this->name << " enableEdit " << (string)(enable ? "true" : "false");
+
+	if (enable != bIsEditing)
+	{
+		if (enable)
+		{
+			ofRegisterMouseEvents(this);
+		}
+		else
+		{
+			ofUnregisterMouseEvents(this);
+			//saveSettings();
+		}
+		bIsEditing = enable;
 
 		bEditMode.setWithoutEventNotifications(bIsEditing);
-    }
+	}
 }
 
 //--------------------------------------------------------------
 void ofxInteractiveRect::disableEdit()
 {
-    enableEdit(false);
-}	
+	enableEdit(false);
+}
 
 //--------------------------------------------------------------
 void ofxInteractiveRect::toggleEdit()
 {
-    enableEdit(!bIsEditing);
+	enableEdit(!bIsEditing);
 }
 
 //--------------------------------------------------------------
 ofRectangle ofxInteractiveRect::getRect()
 {
-    return ofRectangle(x, y, width, height);
+	return ofRectangle(x, y, width, height);
 }
 
 //--------------------------------------------------------------
 void ofxInteractiveRect::saveSettings(string name, string path, bool saveJson)
 {
-    if(name!="")
-    {
-        this->name = name;
-    }
-    
-    if (path!="")
-    {
-        this->path = path;
-    }
+	if (name != "")
+	{
+		this->name = name;
+	}
 
-	string filename = this->path + prefixName + this->name ;
-	 
-	if(saveJson){
+	if (path != "")
+	{
+		this->path = path;
+	}
+
+	string filename = this->path + prefixName + this->name;
+
+	if (saveJson) {
 		filename += ".json";
 		ofSaveJson(filename, toJson());
-	}else{
+	}
+	else {
 		filename += ".xml";
 		toXml().save(filename);
 	}
-	
-	ofLogVerbose(__FUNCTION__) << "saved settings: "<< filename;
-}
 
+	ofLogVerbose(__FUNCTION__) << "saved settings: " << filename;
+}
 
 ofJson ofxInteractiveRect::toJson()
 {
@@ -106,10 +131,10 @@ ofJson ofxInteractiveRect::toJson()
 
 	j["x"] = this->ofRectangle::x;
 	j["y"] = this->ofRectangle::y;
-	j["width"] =  this->ofRectangle::width;
-	j["height"] =  this->ofRectangle::height;
-	j["name"] =  this->name;
-	j["path"] =  this->path;
+	j["width"] = this->ofRectangle::width;
+	j["height"] = this->ofRectangle::height;
+	j["name"] = this->name;
+	j["path"] = this->path;
 	j["isEditing"] = this->bIsEditing;
 	return j;
 }
@@ -123,7 +148,7 @@ void ofxInteractiveRect::fromJson(const ofJson& j)
 	j["name"].get_to(this->name);
 	j["path"].get_to(this->path);
 	bool editing;
-	
+
 	j["isEditing"].get_to(editing);
 	enableEdit(editing);
 }
@@ -132,7 +157,7 @@ ofXml ofxInteractiveRect::toXml()
 {
 	ofXml xml;
 	auto r = xml.appendChild("interactiveRect");
-	
+
 	r.appendChild("path").set(this->path);
 	r.appendChild("x").set(this->ofRectangle::x);
 	r.appendChild("y").set(this->ofRectangle::y);
@@ -147,7 +172,7 @@ ofXml ofxInteractiveRect::toXml()
 bool ofxInteractiveRect::fromXml(const ofXml& xml)
 {
 	auto r = xml.getChild("interactiveRect");
-	if(r)
+	if (r)
 	{
 		this->path = r.getChild("path").getValue();
 		this->ofRectangle::x = r.getChild("x").getFloatValue();
@@ -156,122 +181,157 @@ bool ofxInteractiveRect::fromXml(const ofXml& xml)
 		this->ofRectangle::height = r.getChild("height").getFloatValue();
 		this->name = r.getChild("name").getValue();
 		enableEdit(r.getChild("isEditing").getBoolValue());
-		
+
 		return true;
 	}
-	
+
 	return false;
 }
 
 //--------------------------------------------------------------
 bool ofxInteractiveRect::loadSettings(string name, string path, bool loadJson)
 {
-    if(name!="")
-    {
-        this->name = name;
-    }
-    
-    if (path!="")
-    {
-        this->path = path;
-    }
+	if (name != "")
+	{
+		this->name = name;
+	}
 
-	string filename = this->path + prefixName + this->name ;
-	 
-	if(loadJson)
+	if (path != "")
+	{
+		this->path = path;
+	}
+
+	string filename = this->path + prefixName + this->name;
+
+	if (loadJson)
 	{
 		filename += ".json";
-		
+
 		fromJson(ofLoadJson(filename));
 		return true;
-		
-	}else{
+
+	}
+	else {
 		filename += ".xml";
 		ofXml xml;
-		if(xml.load(filename))
+		if (xml.load(filename))
 		{
-			if(fromXml(xml))
+			if (fromXml(xml))
 			{
 				return true;
 			}
 		}
 	}
-	ofLogVerbose(__FUNCTION__) << "unable to load : "<< filename;
-	
+	ofLogVerbose(__FUNCTION__) << "unable to load : " << filename;
+
 	return false;
+}
+
+//TODO:
+//--------------------------------------------------------------
+void ofxInteractiveRect::drawBorder()
+{
+	ofPushStyle();
+	ofNoFill();
+	ofSetLineWidth(2.0);
+	ofSetColor(colorEditingMoving);
+	ofDrawRectangle(*this);
+	ofPopStyle();
 }
 
 //--------------------------------------------------------------
 void ofxInteractiveRect::draw()
 {
 	if (bIsEditing)
-    {
-        ofPushStyle();
+	{
+		ofPushStyle();
 
 		if (bIsOver)
-        {
+		{
 			if (bPressed)
-            {
+			{
 				ofSetColor(colorEditingPressed);
 			}
-            else
-            {
-				ofSetColor(colorEditingHover);//alpha not working?
+			else
+			{
+				ofSetColor(colorEditingHover);
 			}
 			ofNoFill();
 			ofDrawRectangle(*this);
 		}
-        
+
 		ofFill();
-        if (bMove)
-        {
-            ofSetColor(colorEditingMoving);
-            ofDrawRectangle(*this);
-        }
-        else
-        {
-            ofSetColor(colorBorder.r, colorBorder.g, colorBorder.b, colorBorder.a * 0.5);
+		if (bMove)
+		{
+			ofSetColor(colorEditingMoving);
+			ofDrawRectangle(*this);
+		}
+		else
+		{
+			ofSetColor(colorBorder.r, colorBorder.g, colorBorder.b, colorBorder.a * 0.5);
 
-            if (bUp)
-            {
-                ofDrawRectangle(x, y, width, BORDER_SIZE);
-            }
-            else if(bDown)
-            {
-                ofDrawRectangle(x, y + height - BORDER_SIZE, width, BORDER_SIZE);
-            }
-            
-            if (bLeft)
-            {
-                ofDrawRectangle(x, y, BORDER_SIZE, height);
-            }
-            else if(bRight)
-            {
-                ofDrawRectangle(x + width - BORDER_SIZE, y, BORDER_SIZE, height);
-            }
-        }
+			if (bUp)
+			{
+				ofDrawRectangle(x, y, width, BORDER_SIZE);
+			}
+			else if (bDown)
+			{
+				ofDrawRectangle(x, y + height - BORDER_SIZE, width, BORDER_SIZE);
+			}
+			if (bLeft)
+			{
+				ofDrawRectangle(x, y, BORDER_SIZE, height);
+			}
+			else if (bRight)
+			{
+				ofDrawRectangle(x + width - BORDER_SIZE, y, BORDER_SIZE, height);
+			}
+		}
 
-        ofPopStyle();
+		ofPopStyle();
 	}
+
+	//-
+
+	////TODO:
+	////border
+	//if (bDrawBroder)
+	//{
+	//	ofPushStyle();
+
+	//	ofNoFill();
+	//	ofSetLineWidth(2);
+	//	ofColor _c = ofColor(255, 64);
+	//	//ofColor _c = colorBorder;
+	//	if (bIsEditing)
+	//	{
+	//		float v = ofMap(Bounce(0.5), 0, 1, 0.25, 1);
+	//		_c.set(_c.r, _c.g, _c.b, _c.a*v);
+	//	}
+	//	ofSetColor(_c);
+	//	ofDrawRectangle(*this);
+
+	//	ofPopStyle();
+	//}
 }
 
 //--------------------------------------------------------------
 void ofxInteractiveRect::mouseMoved(ofMouseEventArgs & mouse)
 {
 	if (!bPressed)
-    {
+	{
 		bIsOver = inside(mouse.x, mouse.y);
 
 		bLeft = false;
 		bRight = false;
 		bUp = false;
 		bDown = false;
-	
-        if (bIsOver)
-        {
+
+		if (bIsOver)
+		{
 			bMove = true;
-		
-			if (!bLockResize) 
+
+			if (!bLockResize)
 			{
 				if (mouse.x < x + BORDER_SIZE && mouse.x > x)
 				{
@@ -296,13 +356,13 @@ void ofxInteractiveRect::mouseMoved(ofMouseEventArgs & mouse)
 				}
 			}
 		}
-        else
-        {
+		else
+		{
 			bMove = false;
 		}
 	}
 }
-    
+
 //--------------------------------------------------------------
 void ofxInteractiveRect::mousePressed(ofMouseEventArgs & mouse)
 {
@@ -311,15 +371,15 @@ void ofxInteractiveRect::mousePressed(ofMouseEventArgs & mouse)
 
 	if (!bAllScreenMouse) bIsOver = inside(mouse.x, mouse.y);
 	else bIsOver = true;
-    
-    bLeft = false;
-    bRight = false;
-    bUp = false;
-    bDown = false;
-    
-    if (bIsOver)
-    {
-        bMove = true;
+
+	bLeft = false;
+	bRight = false;
+	bUp = false;
+	bDown = false;
+
+	if (bIsOver)
+	{
+		bMove = true;
 
 		if (!bLockResize)
 		{
@@ -344,11 +404,11 @@ void ofxInteractiveRect::mousePressed(ofMouseEventArgs & mouse)
 				bMove = false;
 			}
 		}
-    }
-    else
-    {
-        bMove = false;
-    }
+	}
+	else
+	{
+		bMove = false;
+	}
 }
 
 //--------------------------------------------------------------
@@ -376,15 +436,15 @@ void ofxInteractiveRect::mouseDragged(ofMouseEventArgs & mouse)
 		}
 	}
 
-    if (bMove)
-    {
-        x += mouse.x - mousePrev.x;
-        y += mouse.y - mousePrev.y;
-    }
-    
+	if (bMove)
+	{
+		x += mouse.x - mousePrev.x;
+		y += mouse.y - mousePrev.y;
+	}
+
 	mousePrev = mouse;
 }
-    
+
 //--------------------------------------------------------------
 void ofxInteractiveRect::mouseReleased(ofMouseEventArgs & mouse)
 {
@@ -405,7 +465,7 @@ void ofxInteractiveRect::mouseReleased(ofMouseEventArgs & mouse)
 }
 
 //--------------------------------------------------------------
-void ofxInteractiveRect::Changed_EditMode(bool & b) 
+void ofxInteractiveRect::Changed_EditMode(bool & b)
 {
 	enableEdit(b);
 }

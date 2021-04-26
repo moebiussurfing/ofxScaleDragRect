@@ -21,6 +21,8 @@ private:
 	ofColor colorEditingHover{ ofColor(50, 70) };
 	ofColor colorEditingPressed{ ofColor(50, 200) };//borders
 	ofColor colorEditingMoving{ ofColor(127, 127) };//borders
+	
+	bool bDrawBroder = true;
 
 public:
 	ofParameter<bool> bLockResize{ "Lock Resize",false };
@@ -61,9 +63,14 @@ public:
 	bool isEditing() { return bIsEditing; }
 
 	void draw();
+	void drawBorder();
 
 	bool loadSettings(string name = "", string path = "", bool loadJson = false);
 	void saveSettings(string name = "", string path = "", bool saveJson = false);
+
+	//TODO:
+	//store name and path to allow autosave..
+	bool bAutoSave = true;
 
 	void mouseMoved(ofMouseEventArgs & mouse);
 	void mousePressed(ofMouseEventArgs & mouse);
@@ -112,11 +119,10 @@ protected:
 
 	//--
 
-	// restore
+	// restore/reset position and shape
+public:
 	void setCentered()
 	{
-		setWidth(800);
-		setHeight(800 / (16 / 9.f));
 		setPosition(ofGetWidth() / 2 - getWidth() / 2, ofGetHeight() / 2 - getHeight() / 2);
 	}
 	void setRestoreSize()
