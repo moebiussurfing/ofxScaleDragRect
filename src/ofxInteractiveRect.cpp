@@ -40,6 +40,7 @@ ofxInteractiveRect::ofxInteractiveRect(string name)
 	bEditMode.addListener(this, &ofxInteractiveRect::Changed_EditMode);
 
 	bLockResize = false;
+	bLock = false;
 
 	bIsEditing = false;
 	bMove = false;
@@ -242,6 +243,11 @@ void ofxInteractiveRect::drawBorder()
 //--------------------------------------------------------------
 void ofxInteractiveRect::draw()
 {
+	//TODO:
+	//lock 
+	//slows fps..?
+	//if (this->getHeight() < 100) this->setHeight(100);
+
 	if (bIsEditing)
 	{
 		ofPushStyle();
@@ -250,7 +256,7 @@ void ofxInteractiveRect::draw()
 		{
 			if (bPressed)
 			{
-				ofSetColor(colorEditingPressed);
+				ofSetColor(colorEditingPressedBorder);
 			}
 			else
 			{
@@ -268,23 +274,23 @@ void ofxInteractiveRect::draw()
 		}
 		else
 		{
-			ofSetColor(colorBorder.r, colorBorder.g, colorBorder.b, colorBorder.a * 0.5);
+			ofSetColor(colorBorderDraggable.r, colorBorderDraggable.g, colorBorderDraggable.b, colorBorderDraggable.a * 0.5);
 
 			if (bUp)
 			{
-				ofDrawRectangle(x, y, width, BORDER_SIZE);
+				ofDrawRectangle(x, y, width, BORDER_DRAG_SIZE);
 			}
 			else if (bDown)
 			{
-				ofDrawRectangle(x, y + height - BORDER_SIZE, width, BORDER_SIZE);
+				ofDrawRectangle(x, y + height - BORDER_DRAG_SIZE, width, BORDER_DRAG_SIZE);
 			}
 			if (bLeft)
 			{
-				ofDrawRectangle(x, y, BORDER_SIZE, height);
+				ofDrawRectangle(x, y, BORDER_DRAG_SIZE, height);
 			}
 			else if (bRight)
 			{
-				ofDrawRectangle(x + width - BORDER_SIZE, y, BORDER_SIZE, height);
+				ofDrawRectangle(x + width - BORDER_DRAG_SIZE, y, BORDER_DRAG_SIZE, height);
 			}
 		}
 
@@ -302,7 +308,7 @@ void ofxInteractiveRect::draw()
 	//	ofNoFill();
 	//	ofSetLineWidth(2);
 	//	ofColor _c = ofColor(255, 64);
-	//	//ofColor _c = colorBorder;
+	//	//ofColor _c = colorBorderDraggable;
 	//	if (bIsEditing)
 	//	{
 	//		float v = ofMap(Bounce(0.5), 0, 1, 0.25, 1);
@@ -318,6 +324,8 @@ void ofxInteractiveRect::draw()
 //--------------------------------------------------------------
 void ofxInteractiveRect::mouseMoved(ofMouseEventArgs & mouse)
 {
+	if (bLock) return;
+
 	if (!bPressed)
 	{
 		bIsOver = inside(mouse.x, mouse.y);
@@ -333,23 +341,23 @@ void ofxInteractiveRect::mouseMoved(ofMouseEventArgs & mouse)
 
 			if (!bLockResize)
 			{
-				if (mouse.x < x + BORDER_SIZE && mouse.x > x)
+				if (mouse.x < x + BORDER_DRAG_SIZE && mouse.x > x && !bLockW)
 				{
 					bLeft = true;
 					bMove = false;
 				}
-				else if (mouse.x < x + width && mouse.x > x + width - BORDER_SIZE)
+				else if (mouse.x < x + width && mouse.x > x + width - BORDER_DRAG_SIZE && !bLockW)
 				{
 					bRight = true;
 					bMove = false;
 				}
 
-				if (mouse.y > y && mouse.y < y + BORDER_SIZE)
+				if (mouse.y > y && mouse.y < y + BORDER_DRAG_SIZE && !bLockH)
 				{
 					bUp = true;
 					bMove = false;
 				}
-				else if (mouse.y > y + height - BORDER_SIZE && mouse.y < y + height)
+				else if (mouse.y > y + height - BORDER_DRAG_SIZE && mouse.y < y + height && !bLockH)
 				{
 					bDown = true;
 					bMove = false;
@@ -366,6 +374,8 @@ void ofxInteractiveRect::mouseMoved(ofMouseEventArgs & mouse)
 //--------------------------------------------------------------
 void ofxInteractiveRect::mousePressed(ofMouseEventArgs & mouse)
 {
+	if (bLock) return;
+
 	mousePrev = mouse;
 	bPressed = true;
 
@@ -383,22 +393,22 @@ void ofxInteractiveRect::mousePressed(ofMouseEventArgs & mouse)
 
 		if (!bLockResize)
 		{
-			if (mouse.x < x + BORDER_SIZE && mouse.x > x)
+			if (mouse.x < x + BORDER_DRAG_SIZE && mouse.x > x && !bLockW)
 			{
 				bLeft = true;
 				bMove = false;
 			}
-			else if (mouse.x < x + width && mouse.x > x + width - BORDER_SIZE)
+			else if (mouse.x < x + width && mouse.x > x + width - BORDER_DRAG_SIZE && !bLockW)
 			{
 				bRight = true;
 				bMove = false;
 			}
-			if (mouse.y > y && mouse.y < y + BORDER_SIZE)
+			if (mouse.y > y && mouse.y < y + BORDER_DRAG_SIZE && !bLockH)
 			{
 				bUp = true;
 				bMove = false;
 			}
-			else if (mouse.y > y + height - BORDER_SIZE && mouse.y < y + height)
+			else if (mouse.y > y + height - BORDER_DRAG_SIZE && mouse.y < y + height && !bLockH)
 			{
 				bDown = true;
 				bMove = false;
@@ -414,23 +424,25 @@ void ofxInteractiveRect::mousePressed(ofMouseEventArgs & mouse)
 //--------------------------------------------------------------
 void ofxInteractiveRect::mouseDragged(ofMouseEventArgs & mouse)
 {
+	if (bLock) return;
+
 	//if (!bLockResize) 
 	{
-		if (bUp)
+		if (bUp && !bLockX)
 		{
 			y += mouse.y - mousePrev.y;
 			height += mousePrev.y - mouse.y;
 		}
-		else if (bDown)
+		else if (bDown && !bLockY)
 		{
 			height += mouse.y - mousePrev.y;
 		}
-		if (bLeft)
+		if (bLeft && !bLockW)
 		{
 			x += mouse.x - mousePrev.x;
 			width += mousePrev.x - mouse.x;
 		}
-		else if (bRight)
+		else if (bRight && !bLockH)
 		{
 			width += mouse.x - mousePrev.x;
 		}
@@ -448,6 +460,8 @@ void ofxInteractiveRect::mouseDragged(ofMouseEventArgs & mouse)
 //--------------------------------------------------------------
 void ofxInteractiveRect::mouseReleased(ofMouseEventArgs & mouse)
 {
+	if (bLock) return;
+
 	//if (!bLockResize) 
 	{
 		bLeft = false;

@@ -11,33 +11,49 @@
 
 #include "ofMain.h"
 
-#define BORDER_SIZE 10
+#define BORDER_DRAG_SIZE 15
 
 class ofxInteractiveRect : public ofRectangle
 {
 
 private:
-	ofColor colorBorder = { ofColor::yellow };//draggable borders
+	ofColor colorBorderDraggable = { ofColor::yellow };//draggable borders
 	ofColor colorEditingHover{ ofColor(50, 70) };
-	ofColor colorEditingPressed{ ofColor(50, 200) };//borders
-	ofColor colorEditingMoving{ ofColor(127, 127) };//borders
+	ofColor colorEditingPressedBorder{ ofColor(50, 200) };//borders
+	ofColor colorEditingMoving{ ofColor(127, 127) };//borders. fill color when hover and moving the rectangle
 	
 	bool bDrawBroder = true;
 
+	//TODO:
+private:
+	bool bLockX = false;
+	bool bLockY = false;
+	bool bLockW = false;
+	bool bLockH = false;
+public:
+	void setLockX(bool b) { bLockX = b; };
+	void setLockY(bool b) { bLockY = b; };
+	void setLockW(bool b) { bLockW = b; };
+	void setLockH(bool b) { bLockH = b; };
+
 public:
 	ofParameter<bool> bLockResize{ "Lock Resize",false };
+	ofParameter<bool> bLock{ "Lock",false };
 	void setLockResize(bool b) {
 		bLockResize = b;
 	}
+	void setLock(bool b) {
+		bLock= b;
+	}
 
-	void setColorBorder(const ofColor c) {
-		colorBorder = c;
+	void setColorBorderDraggable(const ofColor c) {
+		colorBorderDraggable = c;
 	}
 	void setColorEditingHover(const ofColor c) {
 		colorEditingHover = c;
 	}
-	void setColorEditingPressed(const ofColor c) {
-		colorEditingPressed = c;
+	void setColorEditingPressedBorder(const ofColor c) {
+		colorEditingPressedBorder = c;
 	}
 	void setColorEditingMoving(const ofColor c) {
 		colorEditingMoving = c;
@@ -104,7 +120,7 @@ public:
 	bool fromXml(const ofXml& x);
 
 public:
-	ofParameter<bool> bEditMode{ "Edit Rectangle", false };
+	ofParameter<bool> bEditMode{ "EDIT BOX", false };
 	void Changed_EditMode(bool & b);
 
 protected:
