@@ -5,7 +5,21 @@
 //  Copyright (c) 2012 micasa. All rights reserved.
 //
 //  Updated by Aaron Richards on 13/05/2014.
+//  Updated by moebiusSurfing 2021
 //
+
+
+/*
+	
+TODO:
+
++ lock x,y,w,h upper/bottom drag borders
++ lock min/max size for the rect and avoid flipping..
++ add mouse drag scale from center (get from ofxSCENE-SVG
++ add helpers to fit/rescale..
+
+*/
+
 
 #pragma once
 
