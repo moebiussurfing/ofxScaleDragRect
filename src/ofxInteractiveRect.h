@@ -10,7 +10,7 @@
 
 
 /*
-	
+
 TODO:
 
 + lock x,y,w,h upper/bottom drag borders
@@ -35,7 +35,7 @@ private:
 	ofColor colorEditingHover{ ofColor(50, 70) };
 	ofColor colorEditingPressedBorder{ ofColor(50, 200) };//borders
 	ofColor colorEditingMoving{ ofColor(127, 127) };//borders. fill color when hover and moving the rectangle
-	
+
 	bool bDrawBroder = true;
 
 	//TODO:
@@ -44,6 +44,7 @@ private:
 	bool bLockY = false;
 	bool bLockW = false;
 	bool bLockH = false;
+
 public:
 	void setLockX(bool b) { bLockX = b; };
 	void setLockY(bool b) { bLockY = b; };
@@ -57,7 +58,7 @@ public:
 		bLockResize = b;
 	}
 	void setLock(bool b) {
-		bLock= b;
+		bLock = b;
 	}
 
 	void setColorBorderDraggable(const ofColor c) {
@@ -72,14 +73,16 @@ public:
 	void setColorEditingMoving(const ofColor c) {
 		colorEditingMoving = c;
 	}
-	
+
 	bool isMouseOver() {
 		bool b = inside(ofGetMouseX(), ofGetMouseY());
 
 		return b;
 	}
-
+private:
 	bool bAllScreenMouse = false;
+
+public:
 	void setAllScreenMouse(bool b) {
 		bAllScreenMouse = b;
 	}
@@ -100,8 +103,16 @@ public:
 
 	//TODO:
 	//store name and path to allow autosave..
+private:
 	bool bAutoSave = true;
 
+public:
+	void setAutoSave(bool b = true) {
+		bAutoSave = b;
+	}
+
+public:
+//private:
 	void mouseMoved(ofMouseEventArgs & mouse);
 	void mousePressed(ofMouseEventArgs & mouse);
 	void mouseDragged(ofMouseEventArgs & mouse);
@@ -111,13 +122,17 @@ public:
 	void mouseEntered(ofMouseEventArgs & mouse);
 	void mouseExited(ofMouseEventArgs & mouse);
 
+public:
 	float getRectX() { return x; }
 	float getRectY() { return y; }
 	float getRectWidth() { return width; }
 	float getRectHeight() { return height; }
+
+private:
 	string name;
 	string path;
 
+public:
 	ofRectangle getRect();
 	void setRect(float x, float y, float width, float height)
 	{
@@ -127,6 +142,7 @@ public:
 		this->height = height;
 	}
 
+private:
 	ofJson toJson();
 	void fromJson(const ofJson& j);
 

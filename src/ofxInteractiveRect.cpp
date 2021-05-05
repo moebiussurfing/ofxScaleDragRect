@@ -51,12 +51,22 @@ ofxInteractiveRect::ofxInteractiveRect(string name)
 	bIsOver = false;
 	this->name = name;
 	this->path = "";
+
+	setRect(10, 10, 400, 400);
+	if(bAutoSave) loadSettings();
+
+	//some grey coloring
+	setColorBorderDraggable(ofColor(0, 128));
+	setColorEditingPressedBorder(ofColor(0, 128));
+	setColorEditingMoving(ofColor(128, 32));
 }
 
 //--------------------------------------------------------------
 ofxInteractiveRect::~ofxInteractiveRect()
 {
 	bEditMode.removeListener(this, &ofxInteractiveRect::Changed_EditMode);
+
+	if (bAutoSave) saveSettings();
 }
 
 //--------------------------------------------------------------
