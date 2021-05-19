@@ -53,7 +53,7 @@ ofxInteractiveRect::ofxInteractiveRect(string name)
 	this->path = "";
 
 	setRect(10, 10, 400, 400);
-	if(bAutoSave) loadSettings();
+	if (bAutoSave) loadSettings();
 
 	//some grey coloring
 	setColorBorderDraggable(ofColor(0, 128));
@@ -133,7 +133,7 @@ void ofxInteractiveRect::saveSettings(string name, string path, bool saveJson)
 		toXml().save(filename);
 	}
 
-	ofLogVerbose(__FUNCTION__) << "saved settings: " << filename;
+	ofLogVerbose(__FUNCTION__) << filename;
 }
 
 ofJson ofxInteractiveRect::toJson()
@@ -246,7 +246,8 @@ void ofxInteractiveRect::drawBorder()
 	ofNoFill();
 	ofSetLineWidth(2.0);
 	ofSetColor(colorEditingMoving);
-	ofDrawRectangle(*this);
+	if (bRounded) ofDrawRectRounded(*this, rounded);
+	else ofDrawRectangle(*this);
 	ofPopStyle();
 }
 
@@ -273,17 +274,22 @@ void ofxInteractiveRect::draw()
 				ofSetColor(colorEditingHover);
 			}
 			ofNoFill();
-			ofDrawRectangle(*this);
+
+			if (bRounded) ofDrawRectRounded(*this, rounded);
+			else ofDrawRectangle(*this);
 		}
 
 		ofFill();
 		if (bMove)
 		{
 			ofSetColor(colorEditingMoving);
-			ofDrawRectangle(*this);
+
+			if (bRounded) ofDrawRectRounded(*this, rounded);
+			else ofDrawRectangle(*this);
 		}
 		else
 		{
+			//draggable borders
 			ofSetColor(colorBorderDraggable.r, colorBorderDraggable.g, colorBorderDraggable.b, colorBorderDraggable.a * 0.5);
 
 			if (bUp)

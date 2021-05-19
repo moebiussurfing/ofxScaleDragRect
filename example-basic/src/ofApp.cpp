@@ -46,11 +46,6 @@ void ofApp::draw(){
 	ofBitmapFont bf;
 	
 	ofDrawBitmapStringHighlight(ss.str(), 30, ofGetHeight() - bf.getBoundingBox(ss.str(), 0, 0).height - 20);
-	
-	
-	
-	
-	
 }
 
 //--------------------------------------------------------------

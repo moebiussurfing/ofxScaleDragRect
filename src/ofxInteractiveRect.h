@@ -37,6 +37,16 @@ private:
 	ofColor colorEditingMoving{ ofColor(127, 127) };//borders. fill color when hover and moving the rectangle
 
 	bool bDrawBroder = true;
+	
+	//rounded
+	bool bRounded = false;
+	float rounded = 5.0;
+public:
+	void setRounded(float r) {
+		if (r > 0) bRounded = true;
+		else bRounded = false;
+		rounded = r;
+	}
 
 	//TODO:
 private:
