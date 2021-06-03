@@ -35,7 +35,7 @@ namespace {
 }  // namespace
 
 //--------------------------------------------------------------
-ofxInteractiveRect::ofxInteractiveRect(string name)
+ofxInteractiveRect::ofxInteractiveRect(string name, string path)
 {
 	bEditMode.addListener(this, &ofxInteractiveRect::Changed_EditMode);
 
@@ -50,7 +50,7 @@ ofxInteractiveRect::ofxInteractiveRect(string name)
 	bDown = false;
 	bIsOver = false;
 	this->name = name;
-	this->path = "";
+	//this->path = "";
 
 	setRect(10, 10, 400, 400);
 	if (bAutoSave) loadSettings();

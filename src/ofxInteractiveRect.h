@@ -13,6 +13,8 @@
 
 TODO:
 
++ path setteable
++ double click to ename edit mode. add param to expose on external gui's
 + lock x,y,w,h upper/bottom drag borders
 + lock min/max size for the rect and avoid flipping..
 + add mouse drag scale from center (get from ofxSCENE-SVG
@@ -97,7 +99,7 @@ public:
 		bAllScreenMouse = b;
 	}
 
-	ofxInteractiveRect(string name);
+	ofxInteractiveRect(string name, string path = "");
 	virtual ~ofxInteractiveRect();
 
 	void enableEdit(bool enable = true);
