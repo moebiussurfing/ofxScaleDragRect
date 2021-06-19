@@ -32,7 +32,7 @@ namespace {
 
 	static constexpr int32_t kCharsetSize = 26;
 
-}  // namespace
+} // namespace
 
 //--------------------------------------------------------------
 ofxInteractiveRect::ofxInteractiveRect(string name, string path)
